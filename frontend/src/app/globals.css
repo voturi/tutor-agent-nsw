@@ -1,26 +1,108 @@
+@import url("https://fonts.googleapis.com/css2?family=Quicksand:wght@400;700&family=Roboto+Condensed:wght@400;700&display=swap");
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: radial-gradient(#280a48, #20043d);
+  --background-fallback: #280a48;
+  --foreground: #ebe7ef;
+  --primary: #7925d3;
+  --primary-light: #9a4ae0;
+  --primary-dark: #5c1ba8;
+  --secondary: #a18aba;
+  --accent: #7925d3;
+  --surface: #140524;
+  --surface-hover: #1b082f;
+  --surface-alt: #2f1d43;
+  --border: rgba(161, 138, 186, 0.3);
+  --muted: #a18aba;
+  --muted-light: rgba(235, 231, 239, 0.7);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-primary-light: var(--primary-light);
+  --color-primary-dark: var(--primary-dark);
+  --color-secondary: var(--secondary);
+  --color-accent: var(--accent);
+  --color-surface: var(--surface);
+  --color-surface-hover: var(--surface-hover);
+  --color-border: var(--border);
+  --color-muted: var(--muted);
+  --color-muted-light: var(--muted-light);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: radial-gradient(#280a48, #20043d);
+    --background-fallback: #280a48;
+    --foreground: #ebe7ef;
+    --primary: #7925d3;
+    --primary-light: #9a4ae0;
+    --primary-dark: #5c1ba8;
+    --secondary: #a18aba;
+    --accent: #7925d3;
+    --surface: #140524;
+    --surface-hover: #1b082f;
+    --surface-alt: #2f1d43;
+    --border: rgba(161, 138, 186, 0.3);
+    --muted: #a18aba;
+    --muted-light: rgba(235, 231, 239, 0.7);
   }
 }
 
+* {
+  box-sizing: border-box;
+}
+
 body {
+  font-family: "Quicksand", sans-serif;
+  line-height: 1.5;
   background: var(--background);
+  background-attachment: fixed;
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  min-height: 100vh;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* Fallback for browsers that don't support CSS custom properties */
+body {
+  background: var(--background-fallback);
+  background: var(--background);
+}
+
+/* Custom utility classes for the purple theme */
+.bg-surface {
+  background-color: var(--surface);
+}
+
+.bg-surface-hover:hover {
+  background-color: var(--surface-hover);
+}
+
+.bg-surface-alt {
+  background-color: var(--surface-alt);
+}
+
+.text-primary {
+  color: var(--primary);
+}
+
+.text-secondary {
+  color: var(--secondary);
+}
+
+.text-muted {
+  color: var(--muted);
+}
+
+.border-custom {
+  border-color: var(--border);
 }
