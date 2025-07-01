@@ -1,0 +1,45 @@
+# TutorAgent MVP Backend Dependencies - Simplified for Initial Setup
+
+# Core Framework
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+pydantic==2.5.0
+pydantic-settings==2.1.0
+
+# Database & Caching
+sqlalchemy==1.4.53
+psycopg2-binary==2.9.9
+redis==5.0.1
+
+# Document Processing & OCR (Basic)
+pytesseract==0.3.10
+opencv-python==4.6.0.66
+pillow==10.1.0
+pypdf2==3.0.1
+
+# Mathematical Processing
+sympy==1.12
+numpy==1.25.2
+
+# LLM Integration
+openai>=1.6.1
+
+# File Handling & Storage
+python-multipart==0.0.6
+aiofiles==23.2.1
+
+# HTTP & API
+httpx==0.25.2
+requests==2.31.0
+
+# Environment & Configuration
+python-dotenv==1.0.0
+
+# Logging
+structlog==23.2.0
+
+# Development & Testing
+pytest==7.4.3
+pytest-asyncio==0.21.1
+black==23.11.0
+isort==5.12.0
