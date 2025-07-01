@@ -123,14 +123,14 @@ export default function Home() {
                 <span className="text-2xl">2️⃣</span>
               </div>
               <h4 className="font-semibold mb-2 text-foreground font-['Roboto_Condensed']">Assess</h4>
-              <p className="text-muted text-sm">AI understands the problem and your child's learning level</p>
+              <p className="text-muted text-sm">AI understands the problem and your child&apos;s learning level</p>
             </div>
             <div className="text-center">
               <div className="bg-surface-alt w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 border border-custom">
                 <span className="text-2xl">3️⃣</span>
               </div>
               <h4 className="font-semibold mb-2 text-foreground font-['Roboto_Condensed']">Guide</h4>
-              <p className="text-muted text-sm">Asks thoughtful questions that lead to "aha!" moments</p>
+              <p className="text-muted text-sm">Asks thoughtful questions that lead to &ldquo;aha!&rdquo; moments</p>
             </div>
             <div className="text-center">
               <div className="bg-surface-alt w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 border border-custom">
@@ -146,7 +146,7 @@ export default function Home() {
         <div className="text-center bg-primary text-white rounded-2xl p-12 shadow-xl">
           <h2 className="text-3xl font-bold mb-4 font-['Roboto_Condensed']">Ready to Transform Homework Time?</h2>
           <p className="text-purple-100 mb-8 text-lg">
-            Join parents who've seen their children grow from frustrated to confident learners
+            Join parents who&apos;ve seen their children grow from frustrated to confident learners
           </p>
           <button className="bg-white text-primary px-8 py-3 rounded-lg font-medium hover:bg-gray-100 transition-colors shadow-lg">
             Start Guided Learning
