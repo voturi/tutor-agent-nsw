@@ -38,14 +38,14 @@ if [ ! -f ".env" ]; then
     exit 1
 fi
 
-# Export environment variables
-export $(cat .env | grep -v ^# | xargs)
+# Export environment variables (skip complex array types)
+export $(cat .env | grep -v ^# | grep -v 'ALLOWED_EXTENSIONS\|ALLOW_ORIGINS\|ALLOW_METHODS\|ALLOW_HEADERS' | xargs)
 print_status "Environment variables loaded"
 
 # Start PostgreSQL and Redis using Docker (if Docker is available)
 if command -v docker &> /dev/null; then
     echo "Starting PostgreSQL and Redis with Docker..."
-    docker-compose up -d postgres redis
+    docker compose up -d postgres redis
     print_status "Database services started"
     
     # Wait for services to be ready
