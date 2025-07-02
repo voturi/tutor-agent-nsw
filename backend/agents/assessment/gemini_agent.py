@@ -43,7 +43,7 @@ class GeminiAssessmentAgent:
             )
             logger.info(f"✅ Gemini {self.model_name} client initialized with API key")
         except Exception as e:
-            logger.error(f"❌ Failed to initialize Gemini client: {e}")
+            logger.error(f"❌ Failed to init Gemini client: {e}")
             raise
     
     def _setup_prompts(self):
