@@ -35,6 +35,7 @@ class Settings(BaseSettings):
     # LLM API Keys
     OPENAI_API_KEY: Optional[str] = None
     ANTHROPIC_API_KEY: Optional[str] = None
+    GEMINI_API_KEY: Optional[str] = None
     
     # File Storage Configuration
     UPLOAD_DIR: str = "./data/uploads"
@@ -79,9 +80,10 @@ class Settings(BaseSettings):
     WORKERS: int = 1
     
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=[".env", "../.env"],  # Look for .env in current dir and parent dir
         env_file_encoding="utf-8",
-        case_sensitive=True
+        case_sensitive=True,
+        extra="ignore"
     )
     
     def __init__(self, **kwargs):
