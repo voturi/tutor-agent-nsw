@@ -8,13 +8,13 @@ interface Message {
   role: 'user' | 'assistant';
   content: string;
   timestamp: string;
-  metadata?: any;
+  metadata?: Record<string, unknown>;
 }
 
 interface ChatResponse {
   message: Message;
   session_id: string;
-  assessment?: any;
+  assessment?: Record<string, unknown>;
   suggestions?: string[];
 }
 
