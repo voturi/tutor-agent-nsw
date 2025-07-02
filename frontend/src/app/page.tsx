@@ -84,6 +84,11 @@ export default function Home() {
                 </Link>
               </div>
               <div>
+                <Link href="/chat" className="text-primary hover:text-primary-light transition-colors text-sm underline font-medium">
+                  → Start Chat Interface
+                </Link>
+              </div>
+              <div>
                 <Link href="/tutoring" className="text-muted hover:text-primary transition-colors text-xs underline">
                   Preview Tutoring Interface
                 </Link>

@@ -18,7 +18,7 @@ sys.path.insert(0, str(project_root))
 
 from core.config import settings
 from core.logging import setup_logging
-from api.routes import health, upload, session, agents
+from api.routes import health, upload, session, agents, chat
 from services.database import database
 from services.redis import redis_client
 
@@ -56,13 +56,21 @@ async def startup_event():
     logger.info("🚀 Starting TutorAgent MVP...")
     
     try:
-        # Initialize database connection
-        await database.connect()
-        logger.info("✅ Database connected")
+        # Initialize database connection (optional)
+        try:
+            await database.connect()
+            logger.info("✅ Database connected")
+        except Exception as e:
+            logger.warning(f"⚠️  Database not available: {e}")
+            logger.info("💡 Chat functionality will work without database")
         
-        # Initialize Redis connection
-        await redis_client.initialize()
-        logger.info("✅ Redis connected")
+        # Initialize Redis connection (optional)
+        try:
+            await redis_client.initialize()
+            logger.info("✅ Redis connected")
+        except Exception as e:
+            logger.warning(f"⚠️  Redis not available: {e}")
+            logger.info("💡 Sessions will use memory storage")
         
         # Initialize agents (placeholder for now)
         logger.info("✅ Agents initialized")
@@ -102,6 +110,7 @@ app.include_router(health.router, prefix="/health", tags=["Health"])
 app.include_router(upload.router, prefix="/api/v1/upload", tags=["Upload"])
 app.include_router(session.router, prefix="/api/v1/session", tags=["Session"])
 app.include_router(agents.router, prefix="/api/v1/agents", tags=["Agents"])
+app.include_router(chat.router, prefix="/api/v1/chat", tags=["Chat"])
 
 
 @app.get("/")
