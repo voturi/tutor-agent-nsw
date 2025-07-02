@@ -191,7 +191,7 @@ export default function ChatPage() {
               </div>
               <div>
                 <h2 className="font-semibold text-foreground font-['Roboto_Condensed']">
-                  Math Tutor
+                  Math Tutor Agent 
                 </h2>
                 <p className="text-sm text-muted">Ready to help with Year 7 mathematics</p>
               </div>
