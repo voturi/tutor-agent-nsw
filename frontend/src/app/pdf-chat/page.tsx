@@ -1,7 +1,9 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Send, Upload, RefreshCw, Bot, User, FileText, BookOpen } from 'lucide-react';
+import { Send, Upload, RefreshCw, Bot, User, FileText, BookOpen, ToggleLeft, ToggleRight } from 'lucide-react';
+import PDFViewer from '../../components/PDFViewer';
+import SimplePDFViewer from '../../components/SimplePDFViewer';
 
 interface Message {
   id: string;
@@ -25,8 +27,10 @@ export default function PDFChatPage() {
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [uploadedDoc, setUploadedDoc] = useState<UploadedDocument | null>(null);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [dragActive, setDragActive] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [useSimplePDFViewer, setUseSimplePDFViewer] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -97,6 +101,7 @@ export default function PDFChatPage() {
         };
         
         setUploadedDoc(processedDoc);
+        setUploadedFile(file);
         
         const welcomeMessage: Message = {
           id: Date.now().toString(),
@@ -192,25 +197,76 @@ export default function PDFChatPage() {
   const startNewSession = () => {
     setMessages([]);
     setUploadedDoc(null);
+    setUploadedFile(null);
   };
 
   return (
     <div className="min-h-screen bg-background flex">
       {/* Sidebar */}
       <div className="w-96 bg-surface border-r border-custom flex flex-col">
+        {/* Session Management Section */}
+        <div className="border-b border-custom flex flex-col">
+          <div className="p-4 border-b border-custom">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+                <Bot className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h1 className="font-semibold text-foreground">TutorAgent</h1>
+                <p className="text-sm text-muted">Math Homework Helper</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="p-4">
+            <button
+              onClick={startNewSession}
+              className="w-full bg-primary text-white px-4 py-2 rounded-lg font-medium hover:bg-primary-dark transition-colors flex items-center gap-2"
+            >
+              <RefreshCw className="w-4 h-4" />
+              New Session
+            </button>
+          </div>
+
+          <div className="px-4 pb-4">
+            <div className="text-center text-muted">
+              <p className="text-xs">
+                {uploadedDoc ? 'Session active' : 'Upload homework to begin'}
+              </p>
+            </div>
+          </div>
+        </div>
+
         {/* PDF Display Section */}
-        <div className="flex-1 border-b border-custom">
+        <div className="flex-1 border-b border-custom flex flex-col min-h-0">
           <div className="p-4 border-b border-custom">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Upload className="w-5 h-5 text-muted" />
                 <span className="font-medium text-foreground">Document</span>
               </div>
-              <div className="text-xs text-muted">PDF Viewer</div>
+              
+              {uploadedDoc && (
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted">Simple</span>
+                  <button
+                    onClick={() => setUseSimplePDFViewer(!useSimplePDFViewer)}
+                    className="p-1 rounded hover:bg-background"
+                    title={`Switch to ${useSimplePDFViewer ? 'Advanced' : 'Simple'} PDF Viewer`}
+                  >
+                    {useSimplePDFViewer ? (
+                      <ToggleRight className="w-5 h-5 text-primary" />
+                    ) : (
+                      <ToggleLeft className="w-5 h-5 text-muted" />
+                    )}
+                  </button>
+                  <span className="text-xs text-muted">Advanced</span>
+                </div>
+              )}
             </div>
           </div>
           
-          <div className="h-80 p-4">
+          <div className="flex-1 p-4 min-h-0">
             {!uploadedDoc ? (
               <div 
                 className={`h-full border-2 border-dashed rounded-lg flex flex-col items-center justify-center transition-colors ${
@@ -310,49 +366,24 @@ export default function PDFChatPage() {
                   </div>
                 </div>
                 
-                {/* PDF Viewer Placeholder */}
-                <div className="flex-1 bg-background border border-custom rounded-lg p-4 flex items-center justify-center">
-                  <div className="text-center text-muted">
-                    <FileText className="w-8 h-8 mx-auto mb-2" />
-                    <p className="text-sm">PDF Viewer</p>
-                    <p className="text-xs">Question highlighting coming soon</p>
-                  </div>
+                {/* PDF Viewer */}
+                <div className="flex-1">
+                  {useSimplePDFViewer ? (
+                    <SimplePDFViewer 
+                      key={`simple-${uploadedFile?.name}-${uploadedFile?.size}`} 
+                      file={uploadedFile} 
+                      className="w-full h-full" 
+                    />
+                  ) : (
+                    <PDFViewer 
+                      key={`advanced-${uploadedFile?.name}-${uploadedFile?.size}`} 
+                      file={uploadedFile} 
+                      className="w-full h-full" 
+                    />
+                  )}
                 </div>
               </div>
             )}
-          </div>
-        </div>
-
-        {/* Session Management Section */}
-        <div className="h-64 flex flex-col">
-          <div className="p-4 border-b border-custom">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-                <Bot className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <h1 className="font-semibold text-foreground">TutorAgent</h1>
-                <p className="text-sm text-muted">Math Homework Helper</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="p-4">
-            <button
-              onClick={startNewSession}
-              className="w-full bg-primary text-white px-4 py-2 rounded-lg font-medium hover:bg-primary-dark transition-colors flex items-center gap-2"
-            >
-              <RefreshCw className="w-4 h-4" />
-              New Session
-            </button>
-          </div>
-
-          <div className="flex-1 px-4 pb-4">
-            <div className="text-center text-muted">
-              <p className="text-xs">
-                {uploadedDoc ? 'Session active' : 'Upload homework to begin'}
-              </p>
-            </div>
           </div>
         </div>
       </div>
