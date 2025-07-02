@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 
 export default function StartPage() {
   const [dragActive, setDragActive] = useState(false);
@@ -37,11 +38,11 @@ export default function StartPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <div className="flex items-center">
-              <a href="/" className="text-2xl font-bold text-primary">🤖 TutorAgent</a>
+              <Link href="/" className="text-2xl font-bold text-primary">🤖 TutorAgent</Link>
             </div>
             <nav className="hidden md:flex space-x-8">
-              <a href="/" className="text-muted hover:text-primary transition-colors">Home</a>
-              <a href="/tutoring" className="text-muted hover:text-primary transition-colors">Demo</a>
+              <Link href="/" className="text-muted hover:text-primary transition-colors">Home</Link>
+              <Link href="/tutoring" className="text-muted hover:text-primary transition-colors">Demo</Link>
               <a href="#about" className="text-muted hover:text-primary transition-colors">About</a>
             </nav>
           </div>
@@ -71,7 +72,7 @@ export default function StartPage() {
               </h2>
               <p className="text-muted leading-relaxed mb-6">
                 Got homework that needs help? Upload your document and get guided step-by-step assistance 
-                through each problem using our AI tutor's thoughtful questioning approach.
+                through each problem using our AI tutor&apos;s thoughtful questioning approach.
               </p>
             </div>
 
@@ -177,9 +178,9 @@ export default function StartPage() {
         <div className="mt-8 text-center">
           <p className="text-sm text-muted">
             Not sure which option to choose? 
-            <a href="/tutoring" className="text-primary hover:text-primary-light transition-colors ml-1 underline">
+            <Link href="/tutoring" className="text-primary hover:text-primary-light transition-colors ml-1 underline">
               Preview the tutoring experience →
-            </a>
+            </Link>
           </p>
         </div>
       </main>
