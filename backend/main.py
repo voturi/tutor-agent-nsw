@@ -18,7 +18,7 @@ sys.path.insert(0, str(project_root))
 
 from core.config import settings
 from core.logging import setup_logging
-from api.routes import health, upload, session, agents, chat
+from api.routes import health, upload, session, agents, chat, pdf_chat
 from services.database import database
 from services.redis import redis_client
 
@@ -111,6 +111,7 @@ app.include_router(upload.router, prefix="/api/v1/upload", tags=["Upload"])
 app.include_router(session.router, prefix="/api/v1/session", tags=["Session"])
 app.include_router(agents.router, prefix="/api/v1/agents", tags=["Agents"])
 app.include_router(chat.router, prefix="/api/v1/chat", tags=["Chat"])
+app.include_router(pdf_chat.router, prefix="/api/v1/pdf-chat", tags=["PDF Chat"])
 
 
 @app.get("/")

@@ -31,6 +31,7 @@ export default function PDFChatPage() {
   const [dragActive, setDragActive] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [useSimplePDFViewer, setUseSimplePDFViewer] = useState(false);
+  const [sessionId, setSessionId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -80,44 +81,50 @@ export default function PDFChatPage() {
       });
     }, 200);
 
-    // TODO: Replace with actual API call when backend is ready
-    // For now, simulate the entire upload and processing workflow
     try {
-      // Simulate API response time
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Create FormData for file upload
+      const formData = new FormData();
+      formData.append('file', file);
+
+      // Upload to backend API
+      const response = await fetch('http://localhost:8000/api/v1/pdf-chat/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error(`Upload failed: ${response.statusText}`);
+      }
+
+      const uploadResult = await response.json();
       
       clearInterval(progressInterval);
       setUploadProgress(100);
 
-      // Simulate document processing
+      // Process the upload result
       setTimeout(() => {
         const processedDoc: UploadedDocument = {
-          id: Date.now().toString(),
-          name: file.name,
-          size: file.size,
+          id: uploadResult.document_id,
+          name: uploadResult.filename,
+          size: uploadResult.file_size,
           uploadedAt: new Date().toISOString(),
-          questionsExtracted: Math.floor(Math.random() * 8) + 3, // 3-10 questions
+          questionsExtracted: uploadResult.questions_extracted,
           currentQuestion: 1
         };
         
         setUploadedDoc(processedDoc);
         setUploadedFile(file);
+        setSessionId(uploadResult.session_id);
         
-        const welcomeMessage: Message = {
-          id: Date.now().toString(),
-          role: 'assistant',
-          content: `Excellent! I've successfully processed "${file.name}" and found ${processedDoc.questionsExtracted} questions. I can see problems covering various Year 7 topics.\n\nI'm here to guide you through each question step by step using the Socratic method. I won't give you direct answers - instead, I'll ask you questions to help you discover the solutions yourself. This builds real understanding!\n\nLet's start with Question 1. Take a look at it and tell me: what type of mathematical problem do you think this is?`,
-          timestamp: new Date().toISOString(),
-          questionContext: 'Document uploaded - starting session'
-        };
+        // Get the welcome message from session history
+        fetchSessionHistory(uploadResult.session_id);
         
-        setMessages([welcomeMessage]);
         setIsLoading(false);
         setUploadProgress(0);
       }, 1000);
 
     } catch (error) {
-      console.error('Upload simulation failed:', error);
+      console.error('Upload failed:', error);
       clearInterval(progressInterval);
       setIsLoading(false);
       setUploadProgress(0);
@@ -158,8 +165,21 @@ export default function PDFChatPage() {
     fileInputRef.current?.click();
   };
 
-  const sendMessage = (message: string) => {
-    if (!message.trim() || isLoading) return;
+  // Fetch session history
+  const fetchSessionHistory = async (sessionId: string) => {
+    try {
+      const response = await fetch(`http://localhost:8000/api/v1/pdf-chat/session/${sessionId}/history`);
+      if (response.ok) {
+        const data = await response.json();
+        setMessages(data.messages || []);
+      }
+    } catch (error) {
+      console.error('Failed to fetch session history:', error);
+    }
+  };
+
+  const sendMessage = async (message: string) => {
+    if (!message.trim() || isLoading || !sessionId) return;
 
     const newMessage: Message = {
       id: Date.now().toString(),
@@ -171,27 +191,49 @@ export default function PDFChatPage() {
     setInputValue('');
     setIsLoading(true);
     
-    setTimeout(() => {
-      const responses = [
-        "That's a good start! What do you think the first step should be?",
-        "I can see you're thinking about this. Can you tell me what information the problem gives you?",
-        "Interesting approach! What happens when you try that method?",
-        "Great question! Let's break this down - what operation do you think we need here?",
-        "You're on the right track! Can you explain your reasoning to me?"
-      ];
-      
-      const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+    try {
+      const response = await fetch('http://localhost:8000/api/v1/pdf-chat/send', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message,
+          session_id: sessionId,
+          context: {
+            timestamp: new Date().toISOString(),
+          },
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to send message');
+      }
+
+      const data = await response.json();
       
       const responseMessage: Message = {
-        id: Date.now().toString(),
+        id: data.message.id,
         role: 'assistant',
-        content: randomResponse,
-        timestamp: new Date().toISOString(),
-        questionContext: uploadedDoc ? `Question ${uploadedDoc.currentQuestion}` : undefined
+        content: data.message.content,
+        timestamp: data.message.timestamp,
+        questionContext: data.message.question_context
       };
+      
       setMessages(prev => [...prev, responseMessage]);
       setIsLoading(false);
-    }, 1000);
+      
+    } catch (error) {
+      console.error('Failed to send message:', error);
+      const errorMessage: Message = {
+        id: Date.now().toString(),
+        role: 'assistant',
+        content: 'Sorry, I encountered an error. Please try again.',
+        timestamp: new Date().toISOString(),
+      };
+      setMessages(prev => [...prev, errorMessage]);
+      setIsLoading(false);
+    }
   };
 
   const startNewSession = () => {

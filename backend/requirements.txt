@@ -16,7 +16,7 @@ databases[postgresql]==0.8.0
 pytesseract==0.3.10
 opencv-python==4.6.0.66
 pillow==10.1.0
-pypdf2==3.0.1
+PyPDF2==3.0.1
 
 # Mathematical Processing
 sympy==1.12
