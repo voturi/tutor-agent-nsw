@@ -3,8 +3,8 @@
 import { useState } from 'react';
 
 export default function TutoringPage() {
-  const [sessionTime, setSessionTime] = useState(0);
-  const [currentProgress, setCurrentProgress] = useState(3); // Current question number
+  const [sessionTime] = useState(0);
+  const [currentProgress] = useState(3); // Current question number
   const [totalQuestions] = useState(8); // Total questions in homework
 
   return (
@@ -123,7 +123,7 @@ export default function TutoringPage() {
                   <div className="flex-1">
                     <div className="bg-surface p-3 rounded-lg border border-custom">
                       <p className="text-foreground text-sm">
-                        Great! Let's work through this step by step. What do you think is the first thing we need to do when we see a word problem like this?
+                        Great! Let&apos;s work through this step by step. What do you think is the first thing we need to do when we see a word problem like this?
                       </p>
                     </div>
                     <div className="text-xs text-muted mt-1">2 minutes ago</div>
@@ -135,7 +135,7 @@ export default function TutoringPage() {
                   <div className="flex-1 text-right">
                     <div className="bg-primary p-3 rounded-lg inline-block max-w-xs">
                       <p className="text-white text-sm">
-                        Maybe identify what we're looking for?
+                        Maybe identify what we&apos;re looking for?
                       </p>
                     </div>
                     <div className="text-xs text-muted mt-1">1 minute ago</div>
@@ -153,7 +153,7 @@ export default function TutoringPage() {
                   <div className="flex-1">
                     <div className="bg-surface p-3 rounded-lg border border-custom">
                       <p className="text-foreground text-sm">
-                        Excellent thinking! 🎯 Yes, identifying what we're looking for is always a great first step. What exactly are we trying to find in this problem?
+                        Excellent thinking! 🎯 Yes, identifying what we&apos;re looking for is always a great first step. What exactly are we trying to find in this problem?
                       </p>
                     </div>
                     <div className="text-xs text-muted mt-1">Just now</div>
@@ -202,7 +202,7 @@ export default function TutoringPage() {
               </div>
               <div className="text-xs bg-surface p-2 rounded border border-custom">
                 <span className="text-secondary font-medium">Progress:</span>
-                <span className="text-muted ml-1">You're doing great! Take your time to think it through.</span>
+                <span className="text-muted ml-1">You&apos;re doing great! Take your time to think it through.</span>
               </div>
             </div>
           </div>

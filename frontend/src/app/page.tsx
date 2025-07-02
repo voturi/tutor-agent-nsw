@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 
 export default function Home() {
   const [dragActive, setDragActive] = useState(false);
@@ -78,14 +79,14 @@ export default function Home() {
             </button>
             <div className="mt-4 space-y-2">
               <div>
-                <a href="/start" className="text-primary hover:text-primary-light transition-colors text-sm underline font-medium">
+                <Link href="/start" className="text-primary hover:text-primary-light transition-colors text-sm underline font-medium">
                   → Start Learning Journey
-                </a>
+                </Link>
               </div>
               <div>
-                <a href="/tutoring" className="text-muted hover:text-primary transition-colors text-xs underline">
+                <Link href="/tutoring" className="text-muted hover:text-primary transition-colors text-xs underline">
                   Preview Tutoring Interface
-                </a>
+                </Link>
               </div>
             </div>
             <p className="text-sm text-muted-light mt-4">
