@@ -76,6 +76,18 @@ export default function Home() {
             <button className="bg-primary text-white px-8 py-3 rounded-lg font-medium hover:bg-primary-dark transition-colors shadow-lg">
               Choose File
             </button>
+            <div className="mt-4 space-y-2">
+              <div>
+                <a href="/start" className="text-primary hover:text-primary-light transition-colors text-sm underline font-medium">
+                  → Start Learning Journey
+                </a>
+              </div>
+              <div>
+                <a href="/tutoring" className="text-muted hover:text-primary transition-colors text-xs underline">
+                  Preview Tutoring Interface
+                </a>
+              </div>
+            </div>
             <p className="text-sm text-muted-light mt-4">
               Supports PDF, PNG, JPG • Max 10MB
             </p>
