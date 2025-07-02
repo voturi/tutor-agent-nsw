@@ -25,7 +25,10 @@ export default function PDFChatPage() {
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [uploadedDoc, setUploadedDoc] = useState<UploadedDocument | null>(null);
+  const [dragActive, setDragActive] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -40,32 +43,114 @@ export default function PDFChatPage() {
     sendMessage(inputValue);
   };
 
-  const simulateFileUpload = () => {
+  // File validation
+  const validateFile = (file: File): string | null => {
+    if (file.type !== 'application/pdf') {
+      return 'Please upload a PDF file only.';
+    }
+    if (file.size > 10 * 1024 * 1024) { // 10MB limit
+      return 'File size must be less than 10MB.';
+    }
+    return null;
+  };
+
+  // Handle file upload
+  const handleFileUpload = async (file: File) => {
+    const error = validateFile(file);
+    if (error) {
+      alert(error);
+      return;
+    }
+
     setIsLoading(true);
-    
-    setTimeout(() => {
-      const mockDoc: UploadedDocument = {
-        id: Date.now().toString(),
-        name: 'Year7_Maths_Homework_Week3.pdf',
-        size: 245760,
-        uploadedAt: new Date().toISOString(),
-        questionsExtracted: 8,
-        currentQuestion: 1
-      };
+    setUploadProgress(0);
+
+    // Simulate upload progress
+    const progressInterval = setInterval(() => {
+      setUploadProgress(prev => {
+        if (prev >= 90) {
+          clearInterval(progressInterval);
+          return prev;
+        }
+        return prev + 10;
+      });
+    }, 200);
+
+    // TODO: Replace with actual API call when backend is ready
+    // For now, simulate the entire upload and processing workflow
+    try {
+      // Simulate API response time
+      await new Promise(resolve => setTimeout(resolve, 1500));
       
-      setUploadedDoc(mockDoc);
-      
-      const welcomeMessage: Message = {
-        id: Date.now().toString(),
-        role: 'assistant',
-        content: `Great! I've processed your homework and found ${mockDoc.questionsExtracted} questions. I can see you have problems covering integers, fractions, and some basic algebra.\n\nI'm here to guide you through each question step by step. I won't give you the answers directly - instead, I'll ask you questions to help you discover the solutions yourself. This way, you'll truly understand the concepts!\n\nReady to start with Question 1? What type of problem do you think it is when you look at it?`,
-        timestamp: new Date().toISOString(),
-        questionContext: 'Document uploaded - starting session'
-      };
-      
-      setMessages([welcomeMessage]);
+      clearInterval(progressInterval);
+      setUploadProgress(100);
+
+      // Simulate document processing
+      setTimeout(() => {
+        const processedDoc: UploadedDocument = {
+          id: Date.now().toString(),
+          name: file.name,
+          size: file.size,
+          uploadedAt: new Date().toISOString(),
+          questionsExtracted: Math.floor(Math.random() * 8) + 3, // 3-10 questions
+          currentQuestion: 1
+        };
+        
+        setUploadedDoc(processedDoc);
+        
+        const welcomeMessage: Message = {
+          id: Date.now().toString(),
+          role: 'assistant',
+          content: `Excellent! I've successfully processed "${file.name}" and found ${processedDoc.questionsExtracted} questions. I can see problems covering various Year 7 topics.\n\nI'm here to guide you through each question step by step using the Socratic method. I won't give you direct answers - instead, I'll ask you questions to help you discover the solutions yourself. This builds real understanding!\n\nLet's start with Question 1. Take a look at it and tell me: what type of mathematical problem do you think this is?`,
+          timestamp: new Date().toISOString(),
+          questionContext: 'Document uploaded - starting session'
+        };
+        
+        setMessages([welcomeMessage]);
+        setIsLoading(false);
+        setUploadProgress(0);
+      }, 1000);
+
+    } catch (error) {
+      console.error('Upload simulation failed:', error);
+      clearInterval(progressInterval);
       setIsLoading(false);
-    }, 2000);
+      setUploadProgress(0);
+      alert('Upload failed. Please try again.');
+    }
+  };
+
+  // Drag and drop handlers
+  const handleDrag = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === 'dragenter' || e.type === 'dragover') {
+      setDragActive(true);
+    } else if (e.type === 'dragleave') {
+      setDragActive(false);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      handleFileUpload(e.dataTransfer.files[0]);
+    }
+  };
+
+  // File input handler
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      handleFileUpload(e.target.files[0]);
+    }
+  };
+
+  // Click to upload
+  const triggerFileInput = () => {
+    fileInputRef.current?.click();
   };
 
   const sendMessage = (message: string) => {
@@ -127,27 +212,71 @@ export default function PDFChatPage() {
           
           <div className="h-80 p-4">
             {!uploadedDoc ? (
-              <div className="h-full border-2 border-dashed border-custom rounded-lg flex flex-col items-center justify-center bg-surface-alt">
-                <Upload className="w-12 h-12 text-muted mb-4" />
-                <p className="text-sm font-medium text-foreground mb-2">Upload your Year 7 maths homework</p>
-                <p className="text-xs text-muted text-center mb-4">
-                  I'll help you work through each question step by step
-                </p>
-                <button 
-                  onClick={simulateFileUpload}
-                  disabled={isLoading}
-                  className="bg-primary text-white px-4 py-2 rounded-lg text-sm hover:bg-primary-dark transition-colors disabled:opacity-50"
-                >
-                  {isLoading ? 'Processing...' : 'Choose Homework File'}
-                </button>
-                <p className="text-xs text-muted mt-2">Supports PDF files up to 10MB</p>
-                <div className="mt-4 text-xs text-muted text-center">
-                  <p className="font-medium mb-1">I can help with:</p>
-                  <p>• Integers & directed numbers</p>
-                  <p>• Fractions & decimals</p>
-                  <p>• Basic algebra</p>
-                  <p>• Geometry & word problems</p>
-                </div>
+              <div 
+                className={`h-full border-2 border-dashed rounded-lg flex flex-col items-center justify-center transition-colors ${
+                  dragActive 
+                    ? 'border-primary bg-primary/5' 
+                    : 'border-custom bg-surface-alt'
+                }`}
+                onDragEnter={handleDrag}
+                onDragLeave={handleDrag}
+                onDragOver={handleDrag}
+                onDrop={handleDrop}
+              >
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".pdf"
+                  onChange={handleFileInputChange}
+                  className="hidden"
+                />
+                
+                {isLoading ? (
+                  <div className="text-center">
+                    <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                    <p className="text-sm font-medium text-foreground mb-2">Processing your homework...</p>
+                    {uploadProgress > 0 && (
+                      <div className="w-48 mx-auto">
+                        <div className="flex justify-between text-xs text-muted mb-1">
+                          <span>Upload Progress</span>
+                          <span>{uploadProgress}%</span>
+                        </div>
+                        <div className="w-full bg-background rounded-full h-2">
+                          <div 
+                            className="bg-primary h-2 rounded-full transition-all duration-300"
+                            style={{ width: `${uploadProgress}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <>
+                    <Upload className={`w-12 h-12 mb-4 ${
+                      dragActive ? 'text-primary' : 'text-muted'
+                    }`} />
+                    <p className="text-sm font-medium text-foreground mb-2">
+                      {dragActive ? 'Drop your homework here!' : 'Upload your Year 7 maths homework'}
+                    </p>
+                    <p className="text-xs text-muted text-center mb-4">
+                      I'll help you work through each question step by step
+                    </p>
+                    <button 
+                      onClick={triggerFileInput}
+                      className="bg-primary text-white px-4 py-2 rounded-lg text-sm hover:bg-primary-dark transition-colors"
+                    >
+                      Choose Homework File
+                    </button>
+                    <p className="text-xs text-muted mt-2">Drag & drop or click to browse • PDF files up to 10MB</p>
+                    <div className="mt-4 text-xs text-muted text-center">
+                      <p className="font-medium mb-1">I can help with:</p>
+                      <p>• Integers & directed numbers</p>
+                      <p>• Fractions & decimals</p>
+                      <p>• Basic algebra</p>
+                      <p>• Geometry & word problems</p>
+                    </div>
+                  </>
+                )}
               </div>
             ) : (
               <div className="h-full flex flex-col">
