@@ -37,3 +37,19 @@ output "region" {
   description = "AWS region"
   value       = var.aws_region
 }
+
+output "redis_endpoint" {
+  description = "Redis cluster endpoint"
+  value       = aws_elasticache_replication_group.main.primary_endpoint_address
+}
+
+output "postgres_endpoint" {
+  description = "PostgreSQL database endpoint"
+  value       = aws_db_instance.main.address
+}
+
+output "database_url" {
+  description = "Complete database URL"
+  value       = "postgresql://tutor_user:${var.db_password}@${aws_db_instance.main.address}:5432/tutor_agent_db"
+  sensitive   = true
+}

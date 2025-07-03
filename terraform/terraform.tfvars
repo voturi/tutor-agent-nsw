@@ -10,3 +10,6 @@ app_count = 1
 
 # API Keys (replace with your actual Gemini API key)
 gemini_api_key = "AIzaSyAVS7T9TCh4Uk725JlJcnIhbrSm65stxoM"
+
+# Database Configuration
+db_password = "tutor_password_123"

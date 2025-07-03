@@ -218,6 +218,42 @@ resource "aws_ecs_task_definition" "app" {
         {
           name  = "ALLOW_ORIGINS"
           value = "[\"https://tutor-agent-nsw-git-main-voturi-gmailcoms-projects.vercel.app\", \"https://tutor-agent-nsw.vercel.app\", \"https://tutor-agent-66zul8u0z-voturi-gmailcoms-projects.vercel.app\", \"http://localhost:3000\", \"http://127.0.0.1:3000\"]"
+        },
+        {
+          name  = "REDIS_HOST"
+          value = aws_elasticache_replication_group.main.primary_endpoint_address
+        },
+        {
+          name  = "REDIS_PORT"
+          value = "6379"
+        },
+        {
+          name  = "REDIS_URL"
+          value = "redis://${aws_elasticache_replication_group.main.primary_endpoint_address}:6379/0"
+        },
+        {
+          name  = "DB_HOST"
+          value = aws_db_instance.main.address
+        },
+        {
+          name  = "DB_PORT"
+          value = "5432"
+        },
+        {
+          name  = "DB_NAME"
+          value = "tutor_agent_db"
+        },
+        {
+          name  = "DB_USER"
+          value = "tutor_user"
+        },
+        {
+          name  = "DB_PASSWORD"
+          value = var.db_password
+        },
+        {
+          name  = "DATABASE_URL"
+          value = "postgresql://tutor_user:${var.db_password}@${aws_db_instance.main.address}:5432/tutor_agent_db"
         }
       ]
 
@@ -238,11 +274,11 @@ resource "aws_ecs_task_definition" "app" {
       }
 
       healthCheck = {
-        command = ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
-        interval = 30
-        timeout = 5
+        command = ["CMD-SHELL", "curl -f http://localhost:8000/health/ || exit 1"]
+        interval = 60
+        timeout = 10
         retries = 3
-        startPeriod = 60
+        startPeriod = 120
       }
     }
   ])
@@ -278,13 +314,13 @@ resource "aws_lb_target_group" "app" {
   health_check {
     enabled             = true
     healthy_threshold   = 2
-    interval            = 30
+    interval            = 60
     matcher             = "200"
-    path                = "/health"
+    path                = "/health/"
     port                = "traffic-port"
     protocol            = "HTTP"
-    timeout             = 5
-    unhealthy_threshold = 2
+    timeout             = 10
+    unhealthy_threshold = 3
   }
 
   tags = {
@@ -301,6 +337,124 @@ resource "aws_lb_listener" "app" {
   default_action {
     type             = "forward"
     target_group_arn = aws_lb_target_group.app.arn
+  }
+}
+
+# ElastiCache Subnet Group
+resource "aws_elasticache_subnet_group" "main" {
+  name       = "${var.app_name}-cache-subnet"
+  subnet_ids = aws_subnet.public[*].id
+
+  tags = {
+    Name = "${var.app_name}-cache-subnet-group"
+  }
+}
+
+# Security Group for ElastiCache
+resource "aws_security_group" "elasticache" {
+  name_prefix = "${var.app_name}-redis-"
+  vpc_id      = aws_vpc.main.id
+
+  ingress {
+    from_port       = 6379
+    to_port         = 6379
+    protocol        = "tcp"
+    security_groups = [aws_security_group.ecs_tasks.id]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "${var.app_name}-redis-sg"
+  }
+}
+
+# ElastiCache Redis Cluster
+resource "aws_elasticache_replication_group" "main" {
+  replication_group_id         = "${var.app_name}-redis"
+  description                  = "Redis cluster for ${var.app_name}"
+  port                         = 6379
+  parameter_group_name         = "default.redis7"
+  node_type                    = "cache.t3.micro"
+  num_cache_clusters           = 1
+  engine_version               = "7.0"
+  subnet_group_name            = aws_elasticache_subnet_group.main.name
+  security_group_ids           = [aws_security_group.elasticache.id]
+  at_rest_encryption_enabled   = false
+  transit_encryption_enabled   = false
+  auto_minor_version_upgrade   = true
+
+  tags = {
+    Name = "${var.app_name}-redis"
+  }
+}
+
+# RDS Subnet Group
+resource "aws_db_subnet_group" "main" {
+  name       = "${var.app_name}-db-subnet"
+  subnet_ids = aws_subnet.public[*].id
+
+  tags = {
+    Name = "${var.app_name}-db-subnet-group"
+  }
+}
+
+# Security Group for RDS
+resource "aws_security_group" "rds" {
+  name_prefix = "${var.app_name}-rds-"
+  vpc_id      = aws_vpc.main.id
+
+  ingress {
+    from_port       = 5432
+    to_port         = 5432
+    protocol        = "tcp"
+    security_groups = [aws_security_group.ecs_tasks.id]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "${var.app_name}-rds-sg"
+  }
+}
+
+# RDS PostgreSQL Instance
+resource "aws_db_instance" "main" {
+  identifier             = "${var.app_name}-postgres"
+  engine                 = "postgres"
+  engine_version     = "15.8"
+  instance_class         = "db.t3.micro"
+  allocated_storage      = 20
+  max_allocated_storage  = 100
+  storage_type           = "gp2"
+  storage_encrypted      = false
+  
+  db_name  = "tutor_agent_db"
+  username = "tutor_user"
+  password = var.db_password
+  
+  vpc_security_group_ids = [aws_security_group.rds.id]
+  db_subnet_group_name   = aws_db_subnet_group.main.name
+  
+  backup_retention_period = 7
+  backup_window          = "03:00-04:00"
+  maintenance_window     = "sun:04:00-sun:05:00"
+  
+  skip_final_snapshot = true
+  deletion_protection = false
+  
+  tags = {
+    Name = "${var.app_name}-postgres"
   }
 }
 

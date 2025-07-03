@@ -13,10 +13,10 @@ from core.logging import get_logger
 logger = get_logger("database")
 
 # Create database instance
-database = Database(settings.DATABASE_URL)
+database = Database(settings.database_url)
 
 # Create SQLAlchemy engine
-engine = create_engine(settings.DATABASE_URL)
+engine = create_engine(settings.database_url)
 
 # Create session maker
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

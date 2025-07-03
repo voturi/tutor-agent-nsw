@@ -21,15 +21,15 @@ class Settings(BaseSettings):
     SECRET_KEY: str = "your-secret-key-change-in-production"
     
     # Database Configuration
-    DATABASE_URL: str = "postgresql://tutor_user:tutor_password@localhost:5432/tutor_agent_db"
+    DATABASE_URL: Optional[str] = None
     DB_HOST: str = "localhost"
     DB_PORT: int = 5432
     DB_NAME: str = "tutor_agent_db"
     DB_USER: str = "tutor_user"
     DB_PASSWORD: str = "tutor_password"
     
-    # Redis Configuration
-    REDIS_URL: str = "redis://localhost:6379/0"
+    # Redis Configuration  
+    REDIS_URL: Optional[str] = None
     REDIS_HOST: str = "localhost"
     REDIS_PORT: int = 6379
     REDIS_DB: int = 0
@@ -110,6 +110,20 @@ class Settings(BaseSettings):
     def is_production(self) -> bool:
         """Check if running in production mode."""
         return self.ENVIRONMENT == "production"
+    
+    @property
+    def database_url(self) -> str:
+        """Get database URL, constructing from components if not provided."""
+        if self.DATABASE_URL:
+            return self.DATABASE_URL
+        return f"postgresql://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
+    
+    @property
+    def redis_url(self) -> str:
+        """Get Redis URL, constructing from components if not provided."""
+        if self.REDIS_URL:
+            return self.REDIS_URL
+        return f"redis://{self.REDIS_HOST}:{self.REDIS_PORT}/{self.REDIS_DB}"
     
     @field_validator('ALLOW_ORIGINS', mode='before')
     @classmethod
