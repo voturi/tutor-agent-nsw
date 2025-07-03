@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Send, Upload, RefreshCw, Bot, User, FileText, BookOpen, ToggleLeft, ToggleRight } from 'lucide-react';
 import PDFViewer from '../../components/PDFViewer';
 import SimplePDFViewer from '../../components/SimplePDFViewer';
+import { createApiUrl } from '../../lib/api-config';
 
 interface Message {
   id: string;
@@ -94,7 +95,7 @@ export default function PDFChatPage() {
       formData.append('file', file);
 
       // Upload to backend API
-      const response = await fetch('http://localhost:8000/api/v1/pdf-chat/upload', {
+      const response = await fetch(createApiUrl('api/v1/pdf-chat/upload'), {
         method: 'POST',
         body: formData,
       });
@@ -175,7 +176,7 @@ export default function PDFChatPage() {
   // Fetch session history
   const fetchSessionHistory = async (sessionId: string) => {
     try {
-      const response = await fetch(`http://localhost:8000/api/v1/pdf-chat/session/${sessionId}/history`);
+      const response = await fetch(createApiUrl(`api/v1/pdf-chat/session/${sessionId}/history`));
       if (response.ok) {
         const data = await response.json();
         setMessages(data.messages || []);
@@ -199,7 +200,7 @@ export default function PDFChatPage() {
     setIsLoading(true);
     
     try {
-      const response = await fetch('http://localhost:8000/api/v1/pdf-chat/send', {
+      const response = await fetch(createApiUrl('api/v1/pdf-chat/send'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
