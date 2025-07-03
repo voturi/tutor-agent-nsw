@@ -10,11 +10,11 @@ import uuid
 import logging
 from datetime import datetime
 import json
-import os
 import tempfile
+import os
 from pathlib import Path
 
-from agents.assessment.gemini_agent import assessment_agent
+from agents.assessment.gemini_agent import tutor_agent
 from services.redis import redis_client
 from core.config import settings
 
@@ -229,14 +229,35 @@ async def upload_pdf_document(file: UploadFile = File(...)):
             questions_extracted=extraction_result["questions_found"]
         )
         
-        # Add welcome message
+        # Save document content to temporary file for Gemini agent processing
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False) as temp_file:
+            file_content = f"""Document: {file.filename}
+Questions found: {extraction_result["questions_found"]}
+
+Extracted Text:
+{extraction_result["text"]}"""
+            temp_file.write(file_content)
+            temp_file_path = temp_file.name
+        
+        try:
+            # Get welcome message from Gemini agent
+            tutoring_response = await tutor_agent.process_file_upload(
+                file_path=temp_file_path,
+                context={"document_name": file.filename, "questions_found": extraction_result["questions_found"]}
+            )
+            welcome_content = tutoring_response.get("message", "Welcome! I'm ready to help you with your homework.")
+        except Exception as e:
+            logger.warning(f"Failed to get welcome message from Gemini agent: {e}")
+            welcome_content = f"""Hi! I've successfully processed "{file.filename}" and found {extraction_result["questions_found"]} questions. I'm here to guide you through each question step by step. Let's start!"""
+        finally:
+            # Clean up temporary file
+            if os.path.exists(temp_file_path):
+                os.unlink(temp_file_path)
+        
+        # Add welcome message from Gemini agent
         welcome_message = PDFChatMessage(
             role="assistant",
-            content=f"""Excellent! I've successfully processed "{file.filename}" and found {extraction_result["questions_found"]} questions. I can see problems covering various Year 7 topics.
-
-I'm here to guide you through each question step by step using the Socratic method. I won't give you direct answers - instead, I'll ask you questions to help you discover the solutions yourself. This builds real understanding!
-
-Let's start with Question 1. Take a look at it and tell me: what type of mathematical problem do you think this is?""",
+            content=welcome_content,
             question_context="Document uploaded - starting session"
         )
         
@@ -297,20 +318,29 @@ async def send_pdf_chat_message(request: PDFChatRequest):
             "timestamp": datetime.now().isoformat()
         }
         
-        # Assess student response with document context
-        assessment = await assessment_agent.assess_student_response(
-            problem=f"Question {session.current_question} from {session.document_name}",
-            student_response=request.message,
-            context={**document_context, **(request.context or {})}
-        )
+        # Save document content to temporary file for processing
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False) as temp_file:
+            # Write document context and current student response
+            file_content = f"""Document: {session.document_name}
+Question {session.current_question} of {session.questions_extracted}
+
+Extracted Text:
+{session.extracted_text}
+
+Student Response: {request.message}"""
+            temp_file.write(file_content)
+            temp_file_path = temp_file.name
         
-        # Generate tutoring response with document awareness
-        tutoring_response = await assessment_agent.generate_tutoring_response(
-            problem=f"Question {session.current_question} from uploaded homework",
-            student_response=request.message,
-            assessment=assessment,
-            context=document_context
-        )
+        try:
+            # Process with tutor agent
+            tutoring_response = await tutor_agent.process_file_upload(
+                file_path=temp_file_path,
+                context={**document_context, **(request.context or {})}
+            )
+        finally:
+            # Clean up temporary file
+            if os.path.exists(temp_file_path):
+                os.unlink(temp_file_path)
         
         # Create assistant message
         assistant_message = PDFChatMessage(
@@ -323,21 +353,20 @@ async def send_pdf_chat_message(request: PDFChatRequest):
         # Add to session
         session.messages.append(assistant_message)
         
-        # Update session level based on assessment
-        if assessment and "skill_level" in assessment:
-            session.student_level = assessment["skill_level"]
+        # Note: Assessment was removed in favor of direct tutoring approach
+        # Keeping student_level as intermediate for now
         
         # Save session
         await save_pdf_session(session)
         
         # Generate context-aware suggestions
-        suggestions = generate_pdf_suggestions(assessment, session.current_question, session.questions_extracted)
+        suggestions = generate_pdf_suggestions(None, session.current_question, session.questions_extracted)
         
         return PDFChatResponse(
             message=assistant_message,
             session_id=session.session_id,
             document_context=document_context,
-            assessment=assessment,
+            assessment=None,  # Assessment removed in favor of direct tutoring
             suggestions=suggestions
         )
         

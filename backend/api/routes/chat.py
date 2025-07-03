@@ -10,7 +10,7 @@ import uuid
 import logging
 from datetime import datetime
 
-from agents.assessment.gemini_agent import assessment_agent
+from agents.assessment.gemini_agent import tutor_agent
 from services.redis import redis_client
 
 logger = logging.getLogger(__name__)
@@ -130,29 +130,49 @@ async def send_message(request: ChatRequest):
             assistant_content = await generate_initial_response(request.message)
             assessment = None
         else:
-            # This is a continuation - assess response and generate tutoring
-            assessment = await assessment_agent.assess_student_response(
-                problem=session.current_problem or "General math help",
-                student_response=request.message,
-                context=request.context
-            )
+            # This is a continuation - use tutoring approach directly
+            # Create temporary file with conversation context
+            import tempfile
+            with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False) as temp_file:
+                # Write problem and student response
+                file_content = f"""Current Problem: {session.current_problem or "General math help"}
+
+Student Response: {request.message}
+
+Context: {request.context or {}}"""
+                temp_file.write(file_content)
+                temp_file_path = temp_file.name
             
-            # Generate tutoring response
-            tutoring_response = await assessment_agent.generate_tutoring_response(
-                problem=session.current_problem or "General math help",
-                student_response=request.message,
-                assessment=assessment,
-                context=request.context
-            )
-            
-            assistant_content = tutoring_response.get("message", "Let me help you with that!")
+            try:
+                # Process with tutor agent
+                tutoring_response = await tutor_agent.process_file_upload(
+                    file_path=temp_file_path,
+                    context=request.context
+                )
+                assistant_content = tutoring_response.get("message", "Let me help you with that!")
+                assessment = None  # No longer using assessment
+            except ValueError as ve:
+                # Handle Gemini API filtering or safety errors
+                logger.warning(f"Gemini API filtered response: {ve}")
+                assistant_content = "I'm here to help, but let me approach this differently. Can you tell me more about what you're working on?"
+                assessment = None
+            except Exception as e:
+                # Handle other API errors
+                logger.error(f"Error processing with tutor agent: {e}")
+                assistant_content = "I'm having a technical issue right now, but I still want to help! What specific part of this problem would you like to work on together?"
+                assessment = None
+            finally:
+                # Clean up temporary file
+                import os
+                if os.path.exists(temp_file_path):
+                    os.unlink(temp_file_path)
         
         # Create assistant message
         assistant_message = ChatMessage(
             role="assistant",
             content=assistant_content,
             metadata={
-                "assessment": assessment,
+                "assessment": assessment,  # Will be None in the new flow
                 "problem": session.current_problem
             }
         )
@@ -223,14 +243,28 @@ async def delete_session(session_id: str):
 async def generate_initial_response(problem: str) -> str:
     """Generate initial welcoming response for a new problem"""
     try:
-        # Use assessment agent to generate initial response
-        dummy_response = await assessment_agent.generate_tutoring_response(
-            problem=problem,
-            student_response="I need help with this problem",
-            assessment={"skill_level": "intermediate", "emotional_state": "neutral"},
-            context={"is_initial": True}
-        )
-        return dummy_response.get("message", "Great! I'm here to help you work through this problem step by step. What do you think might be a good first step?")
+        # Use tutor agent to generate initial response
+        import tempfile
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False) as temp_file:
+            # Write problem context
+            file_content = f"""New Problem: {problem}
+
+Student needs help with this problem."""
+            temp_file.write(file_content)
+            temp_file_path = temp_file.name
+        
+        try:
+            # Process with tutor agent
+            dummy_response = await tutor_agent.process_file_upload(
+                file_path=temp_file_path,
+                context={"is_initial": True}
+            )
+            return dummy_response.get("message", "Great! I'm here to help you work through this problem step by step. What do you think might be a good first step?")
+        finally:
+            # Clean up temporary file
+            import os
+            if os.path.exists(temp_file_path):
+                os.unlink(temp_file_path)
     except Exception as e:
         logger.warning(f"Failed to generate initial response: {e}")
         return "Hi! I'm excited to help you with this math problem. Let's work through it together - what do you think we should look at first?"

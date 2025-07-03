@@ -23,7 +23,14 @@ interface UploadedDocument {
 }
 
 export default function PDFChatPage() {
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      id: 'initial-greeting',
+      role: 'assistant',
+      content: 'Hi!',
+      timestamp: new Date().toISOString(),
+    }
+  ]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [uploadedDoc, setUploadedDoc] = useState<UploadedDocument | null>(null);
@@ -116,7 +123,7 @@ export default function PDFChatPage() {
         setUploadedFile(file);
         setSessionId(uploadResult.session_id);
         
-        // Get the welcome message from session history
+        // Replace initial greeting with welcome message from session history
         fetchSessionHistory(uploadResult.session_id);
         
         setIsLoading(false);
@@ -237,9 +244,17 @@ export default function PDFChatPage() {
   };
 
   const startNewSession = () => {
-    setMessages([]);
+    setMessages([
+      {
+        id: 'initial-greeting',
+        role: 'assistant',
+        content: 'Hi!',
+        timestamp: new Date().toISOString(),
+      }
+    ]);
     setUploadedDoc(null);
     setUploadedFile(null);
+    setSessionId(null);
   };
 
   return (
@@ -357,7 +372,7 @@ export default function PDFChatPage() {
                       {dragActive ? 'Drop your homework here!' : 'Upload your Year 7 maths homework'}
                     </p>
                     <p className="text-xs text-muted text-center mb-4">
-                      I'll help you work through each question step by step
+                      I&apos;ll help you work through each question step by step
                     </p>
                     <button 
                       onClick={triggerFileInput}
@@ -451,8 +466,8 @@ export default function PDFChatPage() {
             <div className="text-center text-muted py-8">
               <Bot className="w-16 h-16 mx-auto mb-4 text-muted" />
               <h3 className="text-lg font-medium text-foreground mb-2">Welcome to TutorAgent!</h3>
-              <p className="text-sm">Upload your Year 7 maths homework and I'll guide you through each question using the Socratic method.</p>
-              <p className="text-xs mt-2">I'll help you discover the answers yourself by asking the right questions!</p>
+              <p className="text-sm">Upload your Year 7 maths homework and I&apos;ll guide you through each question using the Socratic method.</p>
+              <p className="text-xs mt-2">I&apos;ll help you discover the answers yourself by asking the right questions!</p>
             </div>
           )}
 

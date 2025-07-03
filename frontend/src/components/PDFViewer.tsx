@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import dynamic from 'next/dynamic';
-import { ChevronUp, ChevronDown, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
+import { ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
 
 // Dynamically import react-pdf components to avoid SSR issues
 const Document = dynamic(() => import('react-pdf').then(mod => ({ default: mod.Document })), { 
@@ -17,12 +17,6 @@ const Document = dynamic(() => import('react-pdf').then(mod => ({ default: mod.D
 const Page = dynamic(() => import('react-pdf').then(mod => ({ default: mod.Page })), { 
   ssr: false 
 });
-
-// Import CSS styles for react-pdf (only on client side)
-if (typeof window !== 'undefined') {
-  import('react-pdf/dist/Page/AnnotationLayer.css');
-  import('react-pdf/dist/Page/TextLayer.css');
-}
 
 interface PDFViewerProps {
   file: File | string | null;
@@ -49,7 +43,7 @@ export default function PDFViewer({ file, className = '' }: PDFViewerProps) {
     });
   }, [file]);
 
-  // Configure PDF.js worker on client side only
+  // Configure PDF.js worker and load CSS on client side only
   useEffect(() => {
     let mounted = true;
     
@@ -58,6 +52,21 @@ export default function PDFViewer({ file, className = '' }: PDFViewerProps) {
 
       const setupWorker = async () => {
         try {
+          // Dynamically load CSS styles for react-pdf to avoid SSR issues
+          const loadCSS = (href: string) => {
+            const existingLink = document.querySelector(`link[href="${href}"]`);
+            if (!existingLink) {
+              const link = document.createElement('link');
+              link.rel = 'stylesheet';
+              link.href = href;
+              document.head.appendChild(link);
+            }
+          };
+          
+          // Load react-pdf CSS files
+          loadCSS('https://unpkg.com/react-pdf@7.7.1/dist/Page/AnnotationLayer.css');
+          loadCSS('https://unpkg.com/react-pdf@7.7.1/dist/Page/TextLayer.css');
+          
           const pdfModule = await import('react-pdf');
           
           // Only proceed if component is still mounted
