@@ -46,7 +46,15 @@ app.add_middleware(
 
 app.add_middleware(
     TrustedHostMiddleware,
-    allowed_hosts=["localhost", "127.0.0.1", "0.0.0.0", "*.elb.amazonaws.com", "*.amazonaws.com"]
+    allowed_hosts=[
+        "localhost", 
+        "127.0.0.1", 
+        "0.0.0.0", 
+        "*.elb.amazonaws.com", 
+        "*.amazonaws.com",
+        "*.cloudfront.net",
+        "d3ny673p4nhbnh.cloudfront.net"  # Our specific CloudFront domain
+    ]
 )
 
 

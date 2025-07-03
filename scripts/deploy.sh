@@ -40,8 +40,8 @@ ECR_REPO_URL="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${APP_NAME}"
 
 echo -e "${YELLOW}📦 Building Docker image...${NC}"
 
-# Build the Docker image
-docker build -t ${APP_NAME}:latest -f ${DOCKERFILE_PATH} ${BUILD_CONTEXT}
+# Build the Docker image for AMD64 platform (required for AWS Fargate)
+docker build --platform linux/amd64 -t ${APP_NAME}:latest -f ${DOCKERFILE_PATH} ${BUILD_CONTEXT}
 
 if [ $? -eq 0 ]; then
     echo -e "${GREEN}✅ Docker image built successfully${NC}"
