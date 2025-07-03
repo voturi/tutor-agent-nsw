@@ -3,7 +3,7 @@
 
 export const productionConfig = {
   // API endpoints
-  API_BASE_URL: 'https://your-aws-api-gateway-url.amazonaws.com/prod',
+  API_BASE_URL: 'http://tutor-agent-alb-2115439324.ap-southeast-2.elb.amazonaws.com',
   
   // Frontend settings
   ENVIRONMENT: 'production',

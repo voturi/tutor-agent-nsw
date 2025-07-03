@@ -62,9 +62,15 @@ class Settings(BaseSettings):
     CORS_ORIGINS: str = "http://localhost:3000,http://127.0.0.1:3000"
     
     # Security Settings
-    ALLOW_ORIGINS: List[str] = ["http://localhost:3000", "http://127.0.0.1:3000"]
+    ALLOW_ORIGINS: List[str] = [
+        "http://localhost:3000", 
+        "http://127.0.0.1:3000",
+        "https://tutor-agent-nsw-git-main-voturi-gmailcoms-projects.vercel.app",
+        "https://tutor-agent-nsw.vercel.app",  # Add production domain if you have one
+        "https://*.vercel.app"  # Allow all Vercel preview deployments
+    ]
     ALLOW_CREDENTIALS: bool = True
-    ALLOW_METHODS: List[str] = ["GET", "POST", "PUT", "DELETE"]
+    ALLOW_METHODS: List[str] = ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
     ALLOW_HEADERS: List[str] = ["*"]
     
     # Rate Limiting
