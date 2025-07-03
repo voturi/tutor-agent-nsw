@@ -217,7 +217,7 @@ resource "aws_ecs_task_definition" "app" {
         },
         {
           name  = "ALLOW_ORIGINS"
-          value = "[\"https://tutor-agent-nsw-git-main-voturi-gmailcoms-projects.vercel.app\", \"https://tutor-agent-nsw.vercel.app\", \"https://*.vercel.app\", \"http://localhost:3000\", \"http://127.0.0.1:3000\"]"
+          value = "[\"https://tutor-agent-nsw-git-main-voturi-gmailcoms-projects.vercel.app\", \"https://tutor-agent-nsw.vercel.app\", \"https://tutor-agent-66zul8u0z-voturi-gmailcoms-projects.vercel.app\", \"http://localhost:3000\", \"http://127.0.0.1:3000\"]"
         }
       ]
 
