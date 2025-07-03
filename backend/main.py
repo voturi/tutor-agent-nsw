@@ -35,10 +35,25 @@ app = FastAPI(
     redoc_url="/redoc" if settings.ENVIRONMENT == "development" else None,
 )
 
+# Custom CORS origin validation
+def is_cors_allowed(origin: str) -> bool:
+    """Check if origin is allowed for CORS."""
+    # Check exact matches first
+    if origin in settings.ALLOW_ORIGINS:
+        return True
+    
+    # Check Vercel patterns
+    if origin.endswith('.vercel.app') and origin.startswith('https://'):
+        # Allow all Vercel preview deployments for our project
+        if 'tutor-agent' in origin:
+            return True
+    
+    return False
+
 # Add middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.ALLOW_ORIGINS,
+    allow_origin_regex=r"https://(.*\.)?vercel\.app$|http://localhost:.*|http://127\.0\.0\.1:.*",
     allow_credentials=settings.ALLOW_CREDENTIALS,
     allow_methods=settings.ALLOW_METHODS,
     allow_headers=settings.ALLOW_HEADERS,
@@ -53,7 +68,7 @@ app.add_middleware(
         "*.elb.amazonaws.com", 
         "*.amazonaws.com",
         "*.cloudfront.net",
-        "d3ny673p4nhbnh.cloudfront.net"  # Our specific CloudFront domain
+        "d369ssqqiev2h9.cloudfront.net"  # Our specific CloudFront domain
     ]
 )
 

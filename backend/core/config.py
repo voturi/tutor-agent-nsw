@@ -118,10 +118,23 @@ class Settings(BaseSettings):
         if isinstance(v, str):
             try:
                 # Try to parse as JSON
-                return json.loads(v)
+                origins = json.loads(v)
             except json.JSONDecodeError:
                 # If not JSON, split by comma
-                return [origin.strip() for origin in v.split(',')]
+                origins = [origin.strip() for origin in v.split(',')]
+            
+            # Expand wildcard patterns for Vercel
+            expanded_origins = []
+            for origin in origins:
+                expanded_origins.append(origin)
+                # Add common Vercel patterns
+                if origin == "https://*.vercel.app":
+                    expanded_origins.extend([
+                        "https://tutor-agent-nsw.vercel.app",
+                        "https://tutor-agent-nsw-git-main-voturi-gmailcoms-projects.vercel.app",
+                        # Add pattern for preview deployments
+                    ])
+            return expanded_origins
         return v
 
 
