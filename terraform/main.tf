@@ -216,8 +216,8 @@ resource "aws_ecs_task_definition" "app" {
           value = "https://tutor-agent-nsw-git-main-voturi-gmailcoms-projects.vercel.app"
         },
         {
-          name  = "CORS_ORIGINS"
-          value = "https://tutor-agent-nsw-git-main-voturi-gmailcoms-projects.vercel.app,https://tutor-agent-nsw.vercel.app"
+          name  = "ALLOW_ORIGINS"
+          value = "[\"https://tutor-agent-nsw-git-main-voturi-gmailcoms-projects.vercel.app\", \"https://tutor-agent-nsw.vercel.app\", \"http://localhost:3000\", \"http://127.0.0.1:3000\"]"
         }
       ]
 

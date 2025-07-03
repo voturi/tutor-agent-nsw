@@ -3,8 +3,10 @@ TutorAgent MVP Configuration Settings
 """
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import field_validator
 from typing import List, Optional
 import os
+import json
 from pathlib import Path
 
 
@@ -61,13 +63,12 @@ class Settings(BaseSettings):
     FRONTEND_URL: str = "http://localhost:3000"
     CORS_ORIGINS: str = "http://localhost:3000,http://127.0.0.1:3000"
     
-    # Security Settings
+    # Security Settings - can be overridden by environment variable
     ALLOW_ORIGINS: List[str] = [
         "http://localhost:3000", 
         "http://127.0.0.1:3000",
         "https://tutor-agent-nsw-git-main-voturi-gmailcoms-projects.vercel.app",
-        "https://tutor-agent-nsw.vercel.app",  # Add production domain if you have one
-        "https://*.vercel.app"  # Allow all Vercel preview deployments
+        "https://tutor-agent-nsw.vercel.app"
     ]
     ALLOW_CREDENTIALS: bool = True
     ALLOW_METHODS: List[str] = ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
@@ -109,6 +110,19 @@ class Settings(BaseSettings):
     def is_production(self) -> bool:
         """Check if running in production mode."""
         return self.ENVIRONMENT == "production"
+    
+    @field_validator('ALLOW_ORIGINS', mode='before')
+    @classmethod
+    def parse_allow_origins(cls, v):
+        """Parse ALLOW_ORIGINS from environment variable (JSON string or list)."""
+        if isinstance(v, str):
+            try:
+                # Try to parse as JSON
+                return json.loads(v)
+            except json.JSONDecodeError:
+                # If not JSON, split by comma
+                return [origin.strip() for origin in v.split(',')]
+        return v
 
 
 # Create global settings instance
