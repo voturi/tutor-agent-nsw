@@ -236,3 +236,21 @@ pids
 .env
 .env.test
 .env.production
+
+# Terraform
+*.tfstate
+*.tfstate.*
+*.tfplan
+*.tfplan.*
+.terraform/
+.terraform.lock.hcl
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraformrc
+terraform.rc
+
+# Package lock files (should be committed but adding for reference)
+# package-lock.json  # Comment this out - usually committed
+# yarn.lock         # Comment this out - usually committed
