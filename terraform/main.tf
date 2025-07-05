@@ -359,7 +359,7 @@ resource "aws_security_group" "elasticache" {
     from_port       = 6379
     to_port         = 6379
     protocol        = "tcp"
-    security_groups = [aws_security_group.ecs_tasks.id]
+    security_groups = [aws_security_group.ecs_tasks.id, aws_security_group.bastion.id]
   }
 
   egress {
@@ -413,7 +413,7 @@ resource "aws_security_group" "rds" {
     from_port       = 5432
     to_port         = 5432
     protocol        = "tcp"
-    security_groups = [aws_security_group.ecs_tasks.id]
+    security_groups = [aws_security_group.ecs_tasks.id, aws_security_group.bastion.id]
   }
 
   egress {
@@ -556,6 +556,61 @@ resource "aws_ecs_service" "main" {
 
   tags = {
     Name = "${var.app_name}-service"
+  }
+}
+
+# EC2 Key Pair for Bastion Host
+resource "aws_key_pair" "bastion" {
+  key_name   = "${var.app_name}-bastion-key"
+  public_key = var.ssh_public_key
+
+  tags = {
+    Name = "${var.app_name}-bastion-key"
+  }
+}
+
+# Security Group for Bastion Host
+resource "aws_security_group" "bastion" {
+  name_prefix = "${var.app_name}-bastion-"
+  vpc_id      = aws_vpc.main.id
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]  # Restrict this to your IP for security
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "${var.app_name}-bastion-sg"
+  }
+}
+
+# Bastion Host EC2 Instance
+resource "aws_instance" "bastion" {
+  ami                    = "ami-00305344fe2890957"  # Amazon Linux 2023 in ap-southeast-2
+  instance_type          = "t3.micro"
+  key_name              = aws_key_pair.bastion.key_name
+  subnet_id             = aws_subnet.public[0].id
+  vpc_security_group_ids = [aws_security_group.bastion.id]
+
+  associate_public_ip_address = true
+
+  user_data = <<-EOF
+    #!/bin/bash
+    yum update -y
+    yum install -y postgresql15 redis6
+  EOF
+
+  tags = {
+    Name = "${var.app_name}-bastion"
   }
 }
 

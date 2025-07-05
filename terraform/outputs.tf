@@ -39,8 +39,28 @@ output "region" {
 }
 
 output "redis_endpoint" {
-  description = "Redis cluster endpoint"
+  description = "Redis primary endpoint"
   value       = aws_elasticache_replication_group.main.primary_endpoint_address
+}
+
+output "bastion_public_ip" {
+  description = "Public IP address of the bastion host"
+  value       = aws_instance.bastion.public_ip
+}
+
+output "bastion_ssh_command" {
+  description = "SSH command to connect to bastion host"
+  value       = "ssh -i ~/.ssh/tutor-agent-bastion.pem ec2-user@${aws_instance.bastion.public_ip}"
+}
+
+output "postgres_tunnel_command" {
+  description = "SSH tunnel command for PostgreSQL"
+  value       = "ssh -i ~/.ssh/tutor-agent-bastion.pem -L 5432:${aws_db_instance.main.address}:5432 ec2-user@${aws_instance.bastion.public_ip}"
+}
+
+output "redis_tunnel_command" {
+  description = "SSH tunnel command for Redis"
+  value       = "ssh -i ~/.ssh/tutor-agent-bastion.pem -L 6379:${aws_elasticache_replication_group.main.primary_endpoint_address}:6379 ec2-user@${aws_instance.bastion.public_ip}"
 }
 
 output "postgres_endpoint" {

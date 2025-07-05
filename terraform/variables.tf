@@ -29,8 +29,16 @@ variable "app_count" {
 }
 
 variable "gemini_api_key" {
-  description = "Gemini API Key for accessing APIs"
+  description = "Gemini API key for AI services"
   type        = string
+  sensitive   = true
+  default     = ""
+}
+
+variable "ssh_public_key" {
+  description = "SSH public key for bastion host access"
+  type        = string
+  default     = ""
 }
 
 variable "db_password" {
